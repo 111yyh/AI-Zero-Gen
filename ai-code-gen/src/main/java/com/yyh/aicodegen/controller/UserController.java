@@ -11,17 +11,10 @@ import com.yyh.aicodegen.exception.ThrowUtils;
 import com.yyh.aicodegen.vo.LoginUserVO;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 import com.yyh.aicodegen.model.entity.User;
 import com.yyh.aicodegen.service.UserService;
-import org.springframework.web.bind.annotation.RestController;
+
 import java.util.List;
 
 /**
@@ -57,6 +50,29 @@ public class UserController {
         String userPassword = userLoginRequest.getUserPassword();
         LoginUserVO loginUserVO = userService.userLogin(userAccount, userPassword, request);
         return ResultUtils.success(loginUserVO);
+    }
+
+    /**
+     * 获取当前登录用户信息
+     * @param request
+     * @return
+     */
+    @GetMapping("/get/login")
+    public BaseResponse<LoginUserVO> getLoginUser(HttpServletRequest request) {
+        ThrowUtils.throwIf(request == null, new BusinessException(ErrorCode.PARAMS_ERROR));
+        LoginUserVO loginUserVO = userService.getLoginUser(request);
+        return ResultUtils.success(loginUserVO);
+    }
+
+    /**
+     * 用户退出登录
+     * @param request
+     * @return
+     */
+    @GetMapping("/logout")
+    public BaseResponse<Boolean> logout(HttpServletRequest request) {
+        ThrowUtils.throwIf(request == null, new BusinessException(ErrorCode.PARAMS_ERROR));
+        return ResultUtils.success(userService.userLogout(request));
     }
 
     /**

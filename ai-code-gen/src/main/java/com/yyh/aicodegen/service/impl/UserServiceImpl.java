@@ -70,9 +70,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>  implements U
             return null;
         }
         LoginUserVO loginUserVO = new LoginUserVO();
-
         BeanUtil.copyProperties(user, loginUserVO);
-
         return loginUserVO;
     }
 
@@ -97,5 +95,27 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>  implements U
         request.getSession().setAttribute(UserConstant.USER_LOGIN_STATE, user);
         // 4. 返回脱敏数据
         return getLoginUserVO(user);
+    }
+
+    @Override
+    public LoginUserVO getLoginUser(HttpServletRequest request) {
+        User user = (User) request.getSession().getAttribute(UserConstant.USER_LOGIN_STATE);
+        ThrowUtils.throwIf(user == null || user.getId() == null,
+                new BusinessException(ErrorCode.NOT_LOGIN_ERROR));
+        // 保险起见，再从数据库中找一下
+        User userInDb = this.getById(user.getId());
+        ThrowUtils.throwIf(userInDb == null,
+                new BusinessException(ErrorCode.NOT_LOGIN_ERROR));
+        return getLoginUserVO(user);
+    }
+
+    @Override
+    public boolean userLogout(HttpServletRequest request) {
+        Object user = request.getSession().getAttribute(UserConstant.USER_LOGIN_STATE);
+        ThrowUtils.throwIf(user == null,
+                new BusinessException(ErrorCode.OPERATION_ERROR, "未登录"));
+        // 移除登录态
+        request.getSession().removeAttribute(UserConstant.USER_LOGIN_STATE);
+        return true;
     }
 }
