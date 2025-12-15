@@ -1,4 +1,4 @@
-package com.yyh.aicodegen.dto;
+package com.yyh.aicodegen.model.dto;
 
 import lombok.Data;
 

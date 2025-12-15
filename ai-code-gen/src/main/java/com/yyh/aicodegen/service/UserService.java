@@ -50,7 +50,7 @@ public interface UserService extends IService<User> {
      * @param request 请求
      * @return 脱敏的用户对象
      */
-    LoginUserVO getLoginUser(HttpServletRequest request);
+    User getLoginUser(HttpServletRequest request);
 
     /**
      * 用户注销

@@ -98,7 +98,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>  implements U
     }
 
     @Override
-    public LoginUserVO getLoginUser(HttpServletRequest request) {
+    public User getLoginUser(HttpServletRequest request) {
         User user = (User) request.getSession().getAttribute(UserConstant.USER_LOGIN_STATE);
         ThrowUtils.throwIf(user == null || user.getId() == null,
                 new BusinessException(ErrorCode.NOT_LOGIN_ERROR));
@@ -106,7 +106,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>  implements U
         User userInDb = this.getById(user.getId());
         ThrowUtils.throwIf(userInDb == null,
                 new BusinessException(ErrorCode.NOT_LOGIN_ERROR));
-        return getLoginUserVO(user);
+        return user;
     }
 
     @Override

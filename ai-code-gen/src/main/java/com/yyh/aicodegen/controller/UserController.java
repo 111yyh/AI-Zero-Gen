@@ -3,8 +3,8 @@ package com.yyh.aicodegen.controller;
 import com.mybatisflex.core.paginate.Page;
 import com.yyh.aicodegen.common.BaseResponse;
 import com.yyh.aicodegen.common.ResultUtils;
-import com.yyh.aicodegen.dto.UserLoginRequest;
-import com.yyh.aicodegen.dto.UserRegisterRequest;
+import com.yyh.aicodegen.model.dto.UserLoginRequest;
+import com.yyh.aicodegen.model.dto.UserRegisterRequest;
 import com.yyh.aicodegen.exception.BusinessException;
 import com.yyh.aicodegen.exception.ErrorCode;
 import com.yyh.aicodegen.exception.ThrowUtils;
@@ -60,8 +60,8 @@ public class UserController {
     @GetMapping("/get/login")
     public BaseResponse<LoginUserVO> getLoginUser(HttpServletRequest request) {
         ThrowUtils.throwIf(request == null, new BusinessException(ErrorCode.PARAMS_ERROR));
-        LoginUserVO loginUserVO = userService.getLoginUser(request);
-        return ResultUtils.success(loginUserVO);
+        User loginUser = userService.getLoginUser(request);
+        return ResultUtils.success(userService.getLoginUserVO(loginUser));
     }
 
     /**
