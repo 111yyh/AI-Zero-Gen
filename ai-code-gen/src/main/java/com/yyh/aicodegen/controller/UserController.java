@@ -1,14 +1,19 @@
 package com.yyh.aicodegen.controller;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.mybatisflex.core.paginate.Page;
+import com.yyh.aicodegen.annotation.AuthCheck;
 import com.yyh.aicodegen.common.BaseResponse;
+import com.yyh.aicodegen.common.DeleteRequest;
 import com.yyh.aicodegen.common.ResultUtils;
-import com.yyh.aicodegen.model.dto.UserLoginRequest;
-import com.yyh.aicodegen.model.dto.UserRegisterRequest;
+import com.yyh.aicodegen.constant.UserConstant;
 import com.yyh.aicodegen.exception.BusinessException;
 import com.yyh.aicodegen.exception.ErrorCode;
 import com.yyh.aicodegen.exception.ThrowUtils;
-import com.yyh.aicodegen.vo.LoginUserVO;
+import com.yyh.aicodegen.model.dto.*;
+import com.yyh.aicodegen.model.enums.UserRole;
+import com.yyh.aicodegen.model.vo.LoginUserVO;
+import com.yyh.aicodegen.model.vo.UserVO;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
@@ -78,66 +83,94 @@ public class UserController {
     /**
      * 保存用户。
      *
-     * @param user 用户
+     * @param userAddRequest
      * @return {@code true} 保存成功，{@code false} 保存失败
      */
-    @PostMapping("save")
-    public boolean save(@RequestBody User user) {
-        return userService.save(user);
+    @PostMapping("/add")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Long> addUser(@RequestBody UserAddRequest userAddRequest) {
+        ThrowUtils.throwIf(userAddRequest == null, new BusinessException(ErrorCode.PARAMS_ERROR));
+        User user = new User();
+        BeanUtil.copyProperties(userAddRequest, user);
+        // 默认密码
+        String userPassword = "123456789";
+        String encryptPassword = userService.getEncryptPassword(userPassword);
+        user.setUserPassword(encryptPassword);
+        boolean result = userService.save(user);
+        ThrowUtils.throwIf(!result, new BusinessException(ErrorCode.OPERATION_ERROR));
+        return ResultUtils.success(user.getId());
     }
 
     /**
-     * 根据主键删除用户。
+     * 删除用户。
      *
-     * @param id 主键
+     * @param deleteRequest
      * @return {@code true} 删除成功，{@code false} 删除失败
      */
-    @DeleteMapping("remove/{id}")
-    public boolean remove(@PathVariable Long id) {
-        return userService.removeById(id);
+    @PostMapping("/delete")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Boolean> deleteUser(@RequestBody DeleteRequest deleteRequest) {
+        ThrowUtils.throwIf(deleteRequest == null && deleteRequest.getId() < 0,
+                new BusinessException(ErrorCode.PARAMS_ERROR));
+        long id = deleteRequest.getId();
+        boolean result = userService.removeById(id);
+        ThrowUtils.throwIf(!result, new BusinessException(ErrorCode.OPERATION_ERROR));
+        return ResultUtils.success(result);
     }
 
     /**
      * 根据主键更新用户。
      *
-     * @param user 用户
+     * @param userUpdateRequest
      * @return {@code true} 更新成功，{@code false} 更新失败
      */
-    @PutMapping("update")
-    public boolean update(@RequestBody User user) {
-        return userService.updateById(user);
+    @PostMapping("/update")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Boolean> update(@RequestBody UserUpdateRequest userUpdateRequest) {
+        ThrowUtils.throwIf(userUpdateRequest == null && userUpdateRequest.getId() == null,
+                new BusinessException(ErrorCode.PARAMS_ERROR));
+        User user = new User();
+        BeanUtil.copyProperties(userUpdateRequest, user);
+        boolean result = userService.updateById(user);
+        ThrowUtils.throwIf(!result, new BusinessException(ErrorCode.OPERATION_ERROR));
+        return ResultUtils.success(result);
     }
 
-    /**
-     * 查询所有用户。
-     *
-     * @return 所有数据
-     */
-    @GetMapping("list")
-    public List<User> list() {
-        return userService.list();
+    @GetMapping("/get")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<User> getUserById(Long id) {
+        ThrowUtils.throwIf(id == null, new BusinessException(ErrorCode.PARAMS_ERROR));
+        User user = userService.getById(id);
+        ThrowUtils.throwIf(user == null, new BusinessException(ErrorCode.NOT_FOUND_ERROR));
+        return ResultUtils.success(user);
     }
 
-    /**
-     * 根据主键获取用户。
-     *
-     * @param id 用户主键
-     * @return 用户详情
-     */
-    @GetMapping("getInfo/{id}")
-    public User getInfo(@PathVariable Long id) {
-        return userService.getById(id);
+    @GetMapping("/get/vo")
+    public BaseResponse<UserVO> getUserVO(Long id) {
+        BaseResponse<User> userResponse = getUserById(id);
+        User user = userResponse.getData();
+        return ResultUtils.success(userService.getUserVO(user));
     }
 
     /**
      * 分页查询用户。
      *
-     * @param page 分页对象
+     * @param userQueryRequest 分页对象
      * @return 分页对象
      */
-    @GetMapping("page")
-    public Page<User> page(Page<User> page) {
-        return userService.page(page);
+    @PostMapping("/list/page/vo")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Page<UserVO>> listUserVOByPage(@RequestBody UserQueryRequest userQueryRequest) {
+        ThrowUtils.throwIf(userQueryRequest == null, new BusinessException(ErrorCode.PARAMS_ERROR));
+        int pageNum = userQueryRequest.getPageNum();
+        int pageSize = userQueryRequest.getPageSize();
+        Page<User> userPage = userService.page(Page.of(pageNum, pageSize), userService.getQueryWrapper(userQueryRequest));
+        List<User> userList = userPage.getRecords();
+        // 数据脱敏
+        Page<UserVO> userVOPage = new Page<>(pageNum, pageSize, userPage.getTotalPage());
+        List<UserVO> userVOList = userService.getUserVOList(userList);
+        userVOPage.setRecords(userVOList);
+        return ResultUtils.success(userVOPage);
     }
 
 }

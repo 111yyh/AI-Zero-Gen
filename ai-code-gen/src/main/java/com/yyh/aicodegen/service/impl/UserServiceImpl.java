@@ -1,6 +1,7 @@
 package com.yyh.aicodegen.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
@@ -8,16 +9,21 @@ import com.yyh.aicodegen.constant.UserConstant;
 import com.yyh.aicodegen.exception.BusinessException;
 import com.yyh.aicodegen.exception.ErrorCode;
 import com.yyh.aicodegen.exception.ThrowUtils;
+import com.yyh.aicodegen.model.dto.UserQueryRequest;
 import com.yyh.aicodegen.model.entity.User;
 import com.yyh.aicodegen.mapper.UserMapper;
 import com.yyh.aicodegen.model.enums.UserRole;
+import com.yyh.aicodegen.model.vo.UserVO;
 import com.yyh.aicodegen.service.UserService;
-import com.yyh.aicodegen.vo.LoginUserVO;
+import com.yyh.aicodegen.model.vo.LoginUserVO;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 用户 服务层实现。
@@ -117,5 +123,47 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>  implements U
         // 移除登录态
         request.getSession().removeAttribute(UserConstant.USER_LOGIN_STATE);
         return true;
+    }
+
+    @Override
+    public UserVO getUserVO(User user) {
+        if (user == null) {
+            return null;
+        }
+        UserVO userVO = new UserVO();
+        BeanUtil.copyProperties(user, userVO);
+        return userVO;
+    }
+
+    @Override
+    public List<UserVO> getUserVOList(List<User> userList) {
+        if (CollUtil.isEmpty(userList)) {
+            return new ArrayList<>();
+        }
+        return userList.stream()
+                .map(this::getUserVO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public QueryWrapper getQueryWrapper(UserQueryRequest userQueryRequest) {
+        if (userQueryRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        QueryWrapper queryWrapper = new QueryWrapper();
+        Long id = userQueryRequest.getId();
+        String userName = userQueryRequest.getUserName();
+        String userAccount = userQueryRequest.getUserAccount();
+        String userProfile = userQueryRequest.getUserProfile();
+        String userRole = userQueryRequest.getUserRole();
+        String sortOrder = userQueryRequest.getSortOrder();
+        String sortField = userQueryRequest.getSortField();
+        if (id != null) queryWrapper.eq("id", id);
+        if (userRole != null) queryWrapper.eq("userRole", userRole);
+        if (userName != null && !userName.isEmpty()) queryWrapper.like("username", userName);
+        if (userAccount != null && !userAccount.isEmpty()) queryWrapper.like("userAccount", userAccount);
+        if (userProfile != null && !userProfile.isEmpty()) queryWrapper.like("userProfile", userProfile);
+        if (sortField != null && !sortField.isEmpty()) queryWrapper.orderBy(sortField, "ascend".equals(sortOrder));
+        return queryWrapper;
     }
 }

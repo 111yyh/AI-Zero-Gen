@@ -1,9 +1,14 @@
 package com.yyh.aicodegen.service;
 
+import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.service.IService;
+import com.yyh.aicodegen.model.dto.UserQueryRequest;
 import com.yyh.aicodegen.model.entity.User;
-import com.yyh.aicodegen.vo.LoginUserVO;
+import com.yyh.aicodegen.model.vo.LoginUserVO;
+import com.yyh.aicodegen.model.vo.UserVO;
 import jakarta.servlet.http.HttpServletRequest;
+
+import java.util.List;
 
 /**
  * 用户 服务层。
@@ -58,4 +63,25 @@ public interface UserService extends IService<User> {
      * @return 注销成功与否
      */
     boolean userLogout(HttpServletRequest request);
+
+    /**
+     * 获取脱敏后的用户信息
+     * @param user
+     * @return
+     */
+    UserVO getUserVO(User user);
+
+    /**
+     * 获取脱敏后的用户信息列表
+     * @param userList
+     * @return
+     */
+    List<UserVO> getUserVOList(List<User> userList);
+
+    /**
+     * 根据查询请求组装QueryWrapper
+     * @param userQueryRequest
+     * @return
+     */
+    QueryWrapper getQueryWrapper(UserQueryRequest userQueryRequest);
 }

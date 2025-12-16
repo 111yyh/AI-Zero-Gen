@@ -1,21 +1,18 @@
-package com.yyh.aicodegen.vo;
+package com.yyh.aicodegen.model.vo;
 
 import lombok.Data;
-
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
-public class LoginUserVO implements Serializable {
-
-    private static final long serialVersionUID = 3L;
+public class UserVO implements Serializable {
 
     /**
-     * 用户 id
+     * id
      */
     private Long id;
-
+    
     /**
      * 账号
      */
@@ -46,8 +43,5 @@ public class LoginUserVO implements Serializable {
      */
     private LocalDateTime createTime;
 
-    /**
-     * 更新时间
-     */
-    private LocalDateTime updateTime;
+    private static final long serialVersionUID = 1L;
 }
