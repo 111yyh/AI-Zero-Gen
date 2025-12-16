@@ -167,7 +167,7 @@ public class UserController {
         Page<User> userPage = userService.page(Page.of(pageNum, pageSize), userService.getQueryWrapper(userQueryRequest));
         List<User> userList = userPage.getRecords();
         // 数据脱敏
-        Page<UserVO> userVOPage = new Page<>(pageNum, pageSize, userPage.getTotalPage());
+        Page<UserVO> userVOPage = new Page<>(pageNum, pageSize, userPage.getTotalRow());
         List<UserVO> userVOList = userService.getUserVOList(userList);
         userVOPage.setRecords(userVOList);
         return ResultUtils.success(userVOPage);

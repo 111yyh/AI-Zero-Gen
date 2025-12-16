@@ -1,5 +1,17 @@
 <template>
-    <a-table :columns="columns" :data-source="data">
+    <a-form name="customized_form_controls" layout="inline" :model="searchParams" @finish="doSearch">
+        <a-form-item name="账号" label="账号">
+            <a-input v-model:value="searchParams.userAccount" placeholder="输入账号" />
+        </a-form-item>
+        <a-form-item name="用户名" label="用户名">
+            <a-input v-model:value="searchParams.userName" placeholder="输入用户名" />
+        </a-form-item>
+        <a-form-item>
+            <a-button type="primary" html-type="submit">搜索</a-button>
+        </a-form-item>
+    </a-form>
+    <a-divider />
+    <a-table :columns="columns" :data-source="data" :pagination="pagination" @change="doTableChange">
         <template #headerCell="{ column }">
             <template v-if="column.key === 'name'">
                 <span>
@@ -24,18 +36,18 @@
             <template v-else-if="column.dataIndex === 'createTime'">
                 {{ dayjs(record.createTime).format('YYYY-MM-DD HH:mm:ss') }}
             </template>
-            <template v-else-if="column.key === 'action'">
-                <a-button danger>删除</a-button>
+            <template v-else-if="column.key === 'action' && record.userRole !== 'admin'">
+                <a-button danger @click="doDelete(record.id)">删除</a-button>
             </template>
         </template>
 
     </a-table>
 </template>
 <script lang="ts" setup>
-import { listUserVoByPage } from '@/api/userController';
-import { SmileOutlined, DownOutlined } from '@ant-design/icons-vue';
+import { deleteUser, listUserVoByPage } from '@/api/userController';
+import { SmileOutlined } from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';
-import { onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 import dayjs from "dayjs";
 
 const columns = [
@@ -72,22 +84,55 @@ const columns = [
         key: 'action',
     },
 ]
-
 const data = ref<API.UserVO[]>()
 const total = ref(0)
 
-const searchParam = reactive<API.UserQueryRequest>({
+const searchParams = reactive<API.UserQueryRequest>({
     pageNum: 1,
-    pageSize: 10
+    pageSize: 4
+})
+
+// 分页参数
+const pagination = computed(() => {
+    return {
+        current: searchParams.pageNum ?? 1,
+        pageSize: searchParams.pageSize ?? 4,
+        total: total.value,
+        showSizeChanger: true,
+        showTotal: (total: number) => `共 ${total} 条`,
+    }
 })
 
 const fetchFormData = async () => {
-    const res = await listUserVoByPage(searchParam)
+    const res = await listUserVoByPage(searchParams)
     if (res.data?.code === 0 && res.data?.data) {
         data.value = res.data?.data?.records ?? []
         total.value = res.data?.data?.totalRow ?? 0
     } else {
         message.error("获取数据失败," + res?.data?.message)
+    }
+}
+
+// 表格变化处理
+const doTableChange = (page: any) => {
+    searchParams.pageNum = page.current
+    searchParams.pageSize = page.pageSize
+    fetchFormData()
+}
+
+const doSearch = () => {
+    searchParams.pageNum = 1;
+    fetchFormData();
+}
+
+const doDelete = async (id: number) => {
+    if (!id) return
+    const res = await deleteUser({id});
+    if (res.data?.code === 0) {
+        message.success("删除成功")
+        fetchFormData();
+    } else {
+        message.error("删除失败," + res.data.message)
     }
 }
 
