@@ -8,7 +8,7 @@
             </div>
 
             <!-- 中间：菜单 -->
-            <a-menu v-model:selectedKeys="selectedKeys" mode="horizontal" :items="menuItems" class="header-menu"
+            <a-menu v-model:selectedKeys="selectedKeys" mode="horizontal" :items="items" class="header-menu"
                 @click="handleMenuClick" />
 
             <!-- 右侧：用户信息 -->
@@ -21,6 +21,10 @@
                         </a-space>
                         <template #overlay>
                             <a-menu>
+                                <a-menu-item @click="goProfile">
+                                    <UserOutlined />
+                                    个人中心
+                                </a-menu-item>
                                 <a-menu-item @click="doLogout">
                                     <LogoutOutlined />
                                     退出登录
@@ -41,28 +45,33 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { message, type MenuProps } from 'ant-design-vue'
 import { useLoginUserStore } from '@/stores/loginUser'
-import { LogoutOutlined } from '@ant-design/icons-vue'
+import { LogoutOutlined, UserOutlined } from '@ant-design/icons-vue'
 import { logout } from '@/api/userController'
+import { checkAccess } from '@/common/checkAccess'
 
 const router = useRouter()
-const route = useRoute()
 const loginUserStore = useLoginUserStore()
 
 // 菜单配置
-const menuItems = ref<MenuProps['items']>([
-    {
-        key: '/',
-        label: '首页',
-    },
-    {
-        key: '/about',
-        label: '关于',
-    },
-])
+const items = computed(() => {
+    let arr = [];
+    let routes = router.getRoutes();
+    routes = routes.filter((route) => {
+        if (!route.meta.menu) {
+            return false;
+        }
+        return checkAccess(loginUserStore.loginUser, route.meta.access as string);
+    })
+    for (let i = 0; i < routes.length; i++) {
+        arr.push(routes[i].meta.menu);
+    }
+    return arr;
+})
+
 
 // 当前选中的菜单项
 const selectedKeys = ref<string[]>([])
@@ -93,6 +102,10 @@ const doLogout = async () => {
     } else {
         message.error("退出登录失败," + res.data.message)
     }
+}
+
+const goProfile = () => {
+    router.push('/user/profile')
 }
 </script>
 

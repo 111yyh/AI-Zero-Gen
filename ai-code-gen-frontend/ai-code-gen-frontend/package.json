@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "@tsconfig/node22": "^22.0.2",
+    "@types/lodash": "^4.17.21",
     "@types/node": "^22.15.32",
     "@umijs/openapi": "^1.14.1",
     "@vitejs/plugin-vue": "^6.0.0",

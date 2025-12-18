@@ -21,7 +21,17 @@
             </template>
         </template>
 
-        <template #bodyCell="{ column, record }">
+        <template #bodyCell="{ column, text, record }">
+            <template v-if="['userAccount', 'userName', 'userProfile'].includes(column.dataIndex)">
+                <div>
+                    <a-input v-if="editableData[record.id]"
+                        v-model:value="editableData[record.id][column.dataIndex as keyof API.UserVO]"
+                        style="margin: -5px 0" />
+                    <template v-else>
+                        {{ text }}
+                    </template>
+                </div>
+            </template>
             <template v-if="column.dataIndex === 'userAvatar'">
                 <a-image :src="record.userAvatar" :width="120" />
             </template>
@@ -36,19 +46,31 @@
             <template v-else-if="column.dataIndex === 'createTime'">
                 {{ dayjs(record.createTime).format('YYYY-MM-DD HH:mm:ss') }}
             </template>
-            <template v-else-if="column.key === 'action' && record.userRole !== 'admin'">
-                <a-button danger @click="doDelete(record.id)">删除</a-button>
+            <template v-else-if="column.key === 'action'">
+                <div class="editable-row-operations">
+                    <span v-if="editableData[record.id]">
+                        <a-typography-link @click="save(record.id)">保存</a-typography-link>
+                        <a-typography-link @click="cancel(record.id)">取消</a-typography-link>
+                    </span>
+                    <span v-else>
+                        <a @click="edit(record.id)">编辑</a>
+                    </span>
+                    <span v-show="record.userRole !== 'admin'">
+                        <a @click="doDelete(record.id)">删除</a>
+                    </span>
+                </div>
             </template>
         </template>
 
     </a-table>
 </template>
 <script lang="ts" setup>
-import { deleteUser, listUserVoByPage } from '@/api/userController';
+import { deleteUser, listUserVoByPage, update } from '@/api/userController';
 import { SmileOutlined } from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref, type UnwrapRef } from 'vue';
 import dayjs from "dayjs";
+import { cloneDeep } from 'lodash';
 
 const columns = [
     {
@@ -84,7 +106,7 @@ const columns = [
         key: 'action',
     },
 ]
-const data = ref<API.UserVO[]>()
+const data = ref<API.UserVO[]>([])
 const total = ref(0)
 
 const searchParams = reactive<API.UserQueryRequest>({
@@ -127,7 +149,7 @@ const doSearch = () => {
 
 const doDelete = async (id: number) => {
     if (!id) return
-    const res = await deleteUser({id});
+    const res = await deleteUser({ id });
     if (res.data?.code === 0) {
         message.success("删除成功")
         fetchFormData();
@@ -136,8 +158,37 @@ const doDelete = async (id: number) => {
     }
 }
 
+// 可编辑数据
+const editableData: UnwrapRef<Record<number, API.UserVO>> = reactive({});
+// 编辑
+const edit = (id: number) => {
+    editableData[id] = cloneDeep(data.value.filter(item => id === item.id)[0]);
+};
+// 保存
+const save = async (id: number) => {
+    const res = await update(editableData[id]);
+    if (res.data?.code !== 0) {
+        message.error("保存失败," + res.data?.message);
+        return;
+    } else {
+        message.success("保存成功");
+    }
+    Object.assign(data.value.filter(item => id === item.id)[0], editableData[id]);
+    delete editableData[id];
+};
+// 取消编辑
+const cancel = (id: number) => {
+    delete editableData[id];
+};
+
 onMounted(() => {
     fetchFormData()
 })
 
 </script>
+
+<style scoped>
+.editable-row-operations a {
+    margin-right: 8px;
+}
+</style>

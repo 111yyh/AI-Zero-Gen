@@ -125,7 +125,6 @@ public class UserController {
      * @return {@code true} 更新成功，{@code false} 更新失败
      */
     @PostMapping("/update")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> update(@RequestBody UserUpdateRequest userUpdateRequest) {
         ThrowUtils.throwIf(userUpdateRequest == null && userUpdateRequest.getId() == null,
                 new BusinessException(ErrorCode.PARAMS_ERROR));
@@ -133,7 +132,7 @@ public class UserController {
         BeanUtil.copyProperties(userUpdateRequest, user);
         boolean result = userService.updateById(user);
         ThrowUtils.throwIf(!result, new BusinessException(ErrorCode.OPERATION_ERROR));
-        return ResultUtils.success(result);
+return ResultUtils.success(result);
     }
 
     @GetMapping("/get")
