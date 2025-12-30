@@ -9,7 +9,7 @@ import com.yyh.aicodegen.constant.UserConstant;
 import com.yyh.aicodegen.exception.BusinessException;
 import com.yyh.aicodegen.exception.ErrorCode;
 import com.yyh.aicodegen.exception.ThrowUtils;
-import com.yyh.aicodegen.model.dto.UserQueryRequest;
+import com.yyh.aicodegen.model.dto.user.UserQueryRequest;
 import com.yyh.aicodegen.model.entity.User;
 import com.yyh.aicodegen.mapper.UserMapper;
 import com.yyh.aicodegen.model.enums.UserRole;

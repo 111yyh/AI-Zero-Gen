@@ -1,4 +1,4 @@
-package com.yyh.aicodegen.model.dto;
+package com.yyh.aicodegen.model.dto.user;
 
 import com.yyh.aicodegen.common.PageRequest;
 import lombok.Data;
