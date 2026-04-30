@@ -5,9 +5,6 @@ import zhCN from 'ant-design-vue/es/locale/zh_CN';
 import { useLoginUserStore } from './stores/loginUser';
 
 const locale = ref(zhCN)
-
-const loginUserStore = useLoginUserStore();
-loginUserStore.fetchLoginUser();
 </script>
 
 <template>

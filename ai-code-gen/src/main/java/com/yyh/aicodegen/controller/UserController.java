@@ -10,8 +10,7 @@ import com.yyh.aicodegen.constant.UserConstant;
 import com.yyh.aicodegen.exception.BusinessException;
 import com.yyh.aicodegen.exception.ErrorCode;
 import com.yyh.aicodegen.exception.ThrowUtils;
-import com.yyh.aicodegen.model.dto.*;
-import com.yyh.aicodegen.model.enums.UserRole;
+import com.yyh.aicodegen.model.dto.user.*;
 import com.yyh.aicodegen.model.vo.LoginUserVO;
 import com.yyh.aicodegen.model.vo.UserVO;
 import jakarta.annotation.Resource;
@@ -125,7 +124,6 @@ public class UserController {
      * @return {@code true} 更新成功，{@code false} 更新失败
      */
     @PostMapping("/update")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> update(@RequestBody UserUpdateRequest userUpdateRequest) {
         ThrowUtils.throwIf(userUpdateRequest == null && userUpdateRequest.getId() == null,
                 new BusinessException(ErrorCode.PARAMS_ERROR));
@@ -133,7 +131,7 @@ public class UserController {
         BeanUtil.copyProperties(userUpdateRequest, user);
         boolean result = userService.updateById(user);
         ThrowUtils.throwIf(!result, new BusinessException(ErrorCode.OPERATION_ERROR));
-        return ResultUtils.success(result);
+return ResultUtils.success(result);
     }
 
     @GetMapping("/get")
@@ -167,7 +165,7 @@ public class UserController {
         Page<User> userPage = userService.page(Page.of(pageNum, pageSize), userService.getQueryWrapper(userQueryRequest));
         List<User> userList = userPage.getRecords();
         // 数据脱敏
-        Page<UserVO> userVOPage = new Page<>(pageNum, pageSize, userPage.getTotalPage());
+        Page<UserVO> userVOPage = new Page<>(pageNum, pageSize, userPage.getTotalRow());
         List<UserVO> userVOList = userService.getUserVOList(userList);
         userVOPage.setRecords(userVOList);
         return ResultUtils.success(userVOPage);
