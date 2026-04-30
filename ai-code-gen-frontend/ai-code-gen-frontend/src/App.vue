@@ -17,7 +17,7 @@ loginUserStore.fetchLoginUser();
 </template>
 
 <style>
-/* 全局样式重置 */
+/* 全局样式重置1 */
 * {
   margin: 0;
   padding: 0;
